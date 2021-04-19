@@ -11,4 +11,5 @@
     <string name="language">en-US</string>
     <string name="img_front_path">https://image.tmdb.org/t/p/w600_and_h900_bestv2/</string>
     <string name="page">15</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
