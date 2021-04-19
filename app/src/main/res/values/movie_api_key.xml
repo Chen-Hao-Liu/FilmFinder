@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="movie_KEY">Replace with Your API Key</string>
+    <string name="authorization">Replace Your Authorization</string>
+    <string name="Content_Type">application/json;charset=utf-8</string>
+</resources>
