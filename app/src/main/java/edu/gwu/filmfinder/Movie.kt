@@ -1,5 +1,9 @@
 package edu.gwu.filmfinder
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
+@Parcelize
+
 data class Movie(
 //    @SerializedName("title")
     var title : String,
@@ -13,6 +17,6 @@ data class Movie(
     var description :String,
 //    @SerializedName("vote_average")
     var rating:String
-){
+): Parcelable{
     constructor():this("","","","","","")
 }

@@ -31,7 +31,7 @@ class HomeActivity : AppCompatActivity() {
 
         var moviesList = getFakeData()
 
-        val myAdapter:RecyclerViewAdapter = RecyclerViewAdapter(moviesList)
+        val myAdapter:RecyclerViewAdapter = RecyclerViewAdapter(moviesList, this)
         recyclerView.adapter = myAdapter
     }
 
