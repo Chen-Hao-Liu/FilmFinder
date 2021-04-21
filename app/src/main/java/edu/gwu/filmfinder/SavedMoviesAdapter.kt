@@ -5,7 +5,6 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -55,6 +54,7 @@ class SavedMoviesAdapter(val movies: List<Movie>,val mContext: Context) : Recycl
         holder.itemView.setOnClickListener { v: View? ->
             val intent = Intent(mContext, MovieDetailActivity::class.java)
             intent.putExtra("movie", movies.get(position))
+            intent.putExtra("from", SavedMoviesActivity.TAG)
             mContext.startActivity(intent)
         }
     }

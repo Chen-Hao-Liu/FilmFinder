@@ -31,18 +31,16 @@ class MovieDetailActivity : AppCompatActivity() {
     lateinit var movieRating: TextView
     lateinit var movieDescription:TextView
     lateinit var movieFav:ImageView
+    lateinit var goBack: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
 
         val contentType=getString(R.string.Content_Type)
-        val primaryReleaseDateGte = "2020-01-15"
-        val primaryReleaseDateLte = "2020-02-22"
         val api_key = getString(R.string.movie_KEY)
         val authorization =  getString(R.string.authorization)
         val language = getString(R.string.language)
-        val imaFrontPAth = getString(R.string.img_front_path)
 
         currMovie = intent.getParcelableExtra<Movie>("movie")
         movieTitle = findViewById(R.id.app_header_movie_name_detailpage)
@@ -52,9 +50,11 @@ class MovieDetailActivity : AppCompatActivity() {
         movieRating = findViewById(R.id.movie_rating_detailpage)
         movieDescription = findViewById(R.id.movie_detail_description)
         movieFav = findViewById(R.id.movie_liked)
+        goBack = findViewById(R.id.ic_go_back_detailpage)
 
         movieTitle.text = currMovie!!.title
         movieTitleDetail.text = currMovie!!.title
+        val from = intent.getStringExtra("from")
 
         if (currMovie!!.imageUrl != ""){
             Picasso
@@ -105,6 +105,17 @@ class MovieDetailActivity : AppCompatActivity() {
                 updateDislikedMovie(currMovie!!)
             }
         }
+
+        goBack.setOnClickListener {
+            if (from.equals(SavedMoviesActivity.TAG)){
+                val intent = Intent(this, SavedMoviesActivity::class.java)
+                startActivity(intent)
+            } else if (from.equals(HomeActivity.TAG)){
+                val intent = Intent(this, HomeActivity::class.java)
+                startActivity(intent)
+            }
+        }
+
     }
 
     private fun getMovieFavStatus(currMovie: Movie) {
