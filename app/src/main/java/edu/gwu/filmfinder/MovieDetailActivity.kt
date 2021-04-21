@@ -4,6 +4,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.TextView
 import android.widget.ImageView
+import com.squareup.picasso.Picasso
+import org.jetbrains.anko.doAsync
 
 class MovieDetailActivity : AppCompatActivity() {
 
@@ -20,6 +22,14 @@ class MovieDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_movie_detail)
 
+        val contentType=getString(R.string.Content_Type)
+        val primaryReleaseDateGte = "2020-01-15"
+        val primaryReleaseDateLte = "2020-02-22"
+        val api_key = getString(R.string.movie_KEY)
+        val authorization =  getString(R.string.authorization)
+        val language = getString(R.string.language)
+        val imaFrontPAth = getString(R.string.img_front_path)
+
         currMovie = intent.getParcelableExtra<Movie>("movie")
         movieTitle = findViewById(R.id.app_header_movie_name_detailpage)
         movieTitleDetail = findViewById(R.id.movie_title_detailpage)
@@ -31,7 +41,38 @@ class MovieDetailActivity : AppCompatActivity() {
 
         movieTitle.text = currMovie!!.title
         movieTitleDetail.text = currMovie!!.title
-        movieRating.text = currMovie!!.rating
-        movieDescription.text = currMovie!!.description
+
+        if (currMovie!!.imageUrl != ""){
+            Picasso
+                .get()
+                .load(currMovie!!.imageUrl)
+                .placeholder(R.drawable.no_images_available)
+                .into(movieBGImg)
+
+            Picasso
+                .get()
+                .load(currMovie!!.imageUrl)
+                .placeholder(R.drawable.no_images_available)
+                .into(movieImg)
+        }
+
+        doAsync{
+            try{
+                val movieManagerDetail = MovieManagerDetail(currMovie!!)
+                currMovie = movieManagerDetail.retrieveMovie(
+                    contentType,
+                    api_key,
+                    authorization,
+                    language
+                )
+
+                movieDescription.text = currMovie!!.description
+                movieRating.text = currMovie!!.rating
+
+
+            }catch (e: Exception){
+            }
+        }
+
     }
 }

@@ -3,9 +3,11 @@ package edu.gwu.filmfinder
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import org.jetbrains.anko.doAsync
 
 class HomeActivity : AppCompatActivity() {
     lateinit var recyclerView: RecyclerView
@@ -19,8 +21,17 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-        goBackBtn = findViewById(R.id.ic_go_back_homepage)
 
+        val contentType=getString(R.string.Content_Type)
+        val primaryReleaseDateGte = "2020-01-15"
+        val primaryReleaseDateLte = "2020-02-22"
+        val api_key = getString(R.string.movie_KEY)
+        val authorization =  getString(R.string.authorization)
+        val language = getString(R.string.language)
+        val imaFrontPAth = getString(R.string.img_front_path)
+        val n = getString(R.string.page)
+
+        goBackBtn = findViewById(R.id.ic_go_back_homepage)
         recyclerView = findViewById(R.id.recycleview_movie)
         recyclerView.layoutManager = GridLayoutManager(this,3)
 
@@ -29,25 +40,37 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        var moviesList = getFakeData()
+        doAsync{
+            try{
+                val movieManagerComingSoon = MovieManagerComingSoon()
+                val moviesList = movieManagerComingSoon.retrieveMovie(
+                    contentType,
+                    primaryReleaseDateGte,
+                    primaryReleaseDateLte,
+                    api_key,
+                    authorization,
+                    language,
+                    imaFrontPAth,
+                    n)
 
-        val myAdapter:RecyclerViewAdapter = RecyclerViewAdapter(moviesList, this)
-        recyclerView.adapter = myAdapter
-    }
+                this@HomeActivity?.runOnUiThread{
+                    val myAdapter:RecyclerViewAdapter = RecyclerViewAdapter(moviesList,this@HomeActivity)
+                    recyclerView.adapter = myAdapter
+//                    mry.adapter = RecyclerViewAdapter(context!!,moviesList,mCallback)
+                }
 
-    fun getFakeData(): ArrayList<Movie>{
-        var moviesList : ArrayList<Movie> = arrayListOf()
-        moviesList.add(Movie("movie name 1","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription1","1"))
-        moviesList.add(Movie("movie name 2","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription2","2"))
-        moviesList.add(Movie("movie name 3","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription3","3"))
-        moviesList.add(Movie("movie name 4","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription4","4"))
-        moviesList.add(Movie("movie name 5","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription5","5"))
-        moviesList.add(Movie("movie name 1","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription1","1"))
-        moviesList.add(Movie("movie name 2","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription2","2"))
-        moviesList.add(Movie("movie name 3","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription3","3"))
-        moviesList.add(Movie("movie name 4","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription4","4"))
-        moviesList.add(Movie("movie name 5","55555","","","descriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescriptiondescription5","5"))
-        return moviesList
+            }catch (e: Exception){
+                this@HomeActivity?.runOnUiThread {
+                    e.printStackTrace()
+                    // Display some kind of error message
+                    Toast.makeText(
+                        this@HomeActivity,
+                        " No Movies!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
 }

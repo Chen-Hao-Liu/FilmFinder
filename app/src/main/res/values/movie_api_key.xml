@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="movie_KEY">Replace with Your API Key</string>
-    <string name="authorization">Replace Your Authorization</string>
+    <string name="movie_KEY">315c4239699729f1b8391ec83aea4e41</string>
+    <string name="authorization">eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIzMTVjNDIzOTY5OTcyOWYxYjgzOTFlYzgzYWVhNGU0MSIsInN1YiI6IjVlZGVhN2UyOGQ1MmM5MDAyMmE5NTlmNCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.aA3Wxk5JKbMHPmwS3FGsAjs1scvkfCis7gUutzLz0dQ</string>
     <string name="Content_Type">application/json;charset=utf-8</string>
 </resources>

@@ -8,4 +8,7 @@
     <string name="movie_fullscore_rating"> / 10</string>
     <string name="movie_description_title">Movie Description</string>
     <string name="movie_description">This is Movie Description Detail This is Movie Description Detail This is Movie Description Detail This is Movie Description Detail </string>
+    <string name="language">en-US</string>
+    <string name="img_front_path">https://image.tmdb.org/t/p/w600_and_h900_bestv2/</string>
+    <string name="page">15</string>
 </resources>
