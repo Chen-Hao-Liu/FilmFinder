@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FilmFinder</string>
+    <string name="find">Find</string>
+    <string name="save">Save</string>
+    <string name="map">Map</string>
+    <string name="profile">Profile</string>
 </resources>
