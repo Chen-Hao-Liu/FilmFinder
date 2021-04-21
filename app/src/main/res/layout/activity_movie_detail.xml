@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MovieDetailActivity">
+
+    <TextView
+        android:id="@+id/app_header_movie_name_detailpage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:paddingBottom="6dp"
+        android:paddingTop="6dp"
+        android:text="@string/movie_name"
+        android:textSize="15sp"
+        android:maxWidth="250dp"
+        android:maxLines="1"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/ic_go_back_detailpage"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/app_header_movie_name_detailpage"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintTop_toTopOf="@id/app_header_movie_name_detailpage"
+        app:srcCompat="@drawable/ic_navigate_back" />
+
+    <View
+        android:id="@+id/delimiter_detailpage"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:background="@color/light_gray"
+        app:layout_constraintTop_toBottomOf="@id/app_header_movie_name_detailpage" />
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="1dp"
+        app:layout_constraintTop_toTopOf="@id/delimiter_detailpage"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/movie_img_background_detailpage"
+                android:layout_width="0dp"
+                android:layout_height="150dp"
+                android:background="#090808"
+                android:scaleType="fitXY"
+                android:src="@drawable/no_images_available"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+
+            <ImageView
+                android:id="@+id/movie_liked"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_favorite_unselected"
+                android:layout_marginRight="15dp"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintBottom_toBottomOf="@id/movie_img_background_detailpage"
+                app:layout_constraintRight_toRightOf="parent"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

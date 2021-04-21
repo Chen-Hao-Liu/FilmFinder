@@ -1,4 +1,6 @@
 package edu.gwu.filmfinder
+import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
 
 
-class RecyclerViewAdapter(val mData:List<Movie>): RecyclerView.Adapter<RecyclerViewAdapter.Companion.MyViewHolde>(){
+class RecyclerViewAdapter(val mData:List<Movie>, val mContext: Context): RecyclerView.Adapter<RecyclerViewAdapter.Companion.MyViewHolde>(){
 
     companion object {
 
@@ -43,6 +45,12 @@ class RecyclerViewAdapter(val mData:List<Movie>): RecyclerView.Adapter<RecyclerV
                     .into(holder.movieImg)
             }
 
+        }
+
+        holder.itemView.setOnClickListener { v: View? ->
+            val intent = Intent(mContext, MovieDetailActivity::class.java)
+            intent.putExtra("movie", mData.get(position))
+            mContext.startActivity(intent)
         }
     }
 
