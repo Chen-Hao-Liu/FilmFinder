@@ -5,4 +5,7 @@
     <string name="map">Map</string>
     <string name="profile">Profile</string>
     <string name="movie_name">Movie Name</string>
+    <string name="movie_fullscore_rating"> / 10</string>
+    <string name="movie_description_title">Movie Description</string>
+    <string name="movie_description">This is Movie Description Detail This is Movie Description Detail This is Movie Description Detail This is Movie Description Detail </string>
 </resources>
