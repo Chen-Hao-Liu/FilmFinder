@@ -34,6 +34,7 @@
         <activity android:name=".RegisterActivity"></activity>
         <activity android:name=".MovieDetailActivity"></activity>
         <activity android:name=".HomeActivity"></activity>
+        <activity android:name=".SavedMoviesActivity"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

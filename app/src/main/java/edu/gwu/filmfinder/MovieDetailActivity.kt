@@ -96,6 +96,7 @@ class MovieDetailActivity : AppCompatActivity() {
 
         movieFav.tag = false
 
+        getMovieFavStatus(currMovie!!)
         movieFav.setOnClickListener {
             Log.d(TAG,"fav click")
             if (movieFav.getTag().toString() == "false"){
@@ -104,6 +105,24 @@ class MovieDetailActivity : AppCompatActivity() {
                 updateDislikedMovie(currMovie!!)
             }
         }
+    }
+
+    private fun getMovieFavStatus(currMovie: Movie) {
+        val movieRef = FirebaseDatabase.getInstance().reference.child("Actions/${uid}").orderByChild("id").equalTo("${currMovie.id}")
+
+        movieRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (movieSnapshot in dataSnapshot.children) {
+                    movieFav.tag = true
+                    movieFav.setImageDrawable(getDrawable(R.drawable.ic_favorite_selected))
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.d(TAG,"Unlike Movie Failed:${databaseError.toException()}")
+
+            }
+        })
     }
 
     private fun updateLikedMovie(currMovie: Movie) {

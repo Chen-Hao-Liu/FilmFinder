@@ -7,12 +7,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.jetbrains.anko.doAsync
 
 class HomeActivity : AppCompatActivity() {
     lateinit var recyclerView: RecyclerView
     lateinit var goBackBtn : ImageView
-
+    lateinit var bottomBar : BottomNavigationView
 
     companion object {
         val TAG = "HomeActivity"
@@ -31,6 +32,9 @@ class HomeActivity : AppCompatActivity() {
         val imaFrontPAth = getString(R.string.img_front_path)
         val n = getString(R.string.page)
 
+
+        bottomBar = findViewById(R.id.bottomBar)
+        bottomBar.setSelectedItemId(R.id.action_find)
         goBackBtn = findViewById(R.id.ic_go_back_homepage)
         recyclerView = findViewById(R.id.recycleview_movie)
         recyclerView.layoutManager = GridLayoutManager(this,3)
@@ -70,6 +74,28 @@ class HomeActivity : AppCompatActivity() {
                     ).show()
                 }
             }
+        }
+
+        bottomBar.setOnNavigationItemSelectedListener { item->
+            when(item.itemId){
+                R.id.action_find ->{
+
+                }
+                R.id.action_save ->{
+                    val intent = Intent(this, SavedMoviesActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.action_map -> {
+                    val intent = Intent(this, MapsActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.action_profile ->{
+                    val intent = Intent(this, ProfileActivity::class.java)
+                    startActivity(intent)
+                }
+
+            }
+            return@setOnNavigationItemSelectedListener true
         }
     }
 
