@@ -11,12 +11,18 @@ import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseUser
 
 class MainActivity : AppCompatActivity() {
     lateinit var email : EditText
     lateinit var passWord: EditText
     lateinit var submitBtn: Button
     lateinit var goToRegister: TextView
+    private lateinit var firebaseAuth: FirebaseAuth
 
     companion object {
         val TAG = "MainActivity"
@@ -25,6 +31,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        FirebaseApp.initializeApp(this)
+        firebaseAuth = FirebaseAuth.getInstance()
 
         email = findViewById(R.id.email_edittext_login)
         passWord = findViewById(R.id.password_edittext_login)
@@ -55,19 +64,38 @@ class MainActivity : AppCompatActivity() {
         val inputtedUserEmail: String = email.text.toString().trim()
         val inputtedPassword: String = passWord.text.toString()
 
-        // Save the inputted username to file
-        preferences
-            .edit()
-            .putString("SAVED_USEREMAIL", inputtedUserEmail)
-            .apply()
-                preferences
-                    .edit()
-                    .putString("SAVED_PASSWORD", inputtedPassword)
-                    .apply()
+        firebaseAuth
+            .signInWithEmailAndPassword(inputtedUserEmail, inputtedPassword)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
 
-        val intent = Intent(this, HomeActivity::class.java)
-        startActivity(intent)
+                    val currentUser: FirebaseUser? = firebaseAuth.currentUser
+                    val email = currentUser?.email
+                    Toast.makeText(this, "Logged in as $email", Toast.LENGTH_SHORT).show()
 
+                    // Save the inputted username to file
+                    preferences
+                        .edit()
+                        .putString("SAVED_USEREMAIL", inputtedUserEmail)
+                        .apply()
+                    preferences
+                        .edit()
+                        .putString("SAVED_PASSWORD", inputtedPassword)
+                        .apply()
+
+                    val intent = Intent(this, HomeActivity::class.java)
+                    startActivity(intent)
+
+                } else {
+                    val exception = task.exception
+                    // Example of logging some extra metadata (the error reason) with our analytic
+                    val reason = if (exception is FirebaseAuthInvalidCredentialsException) "invalid_credentials" else "connection_failure"
+                    val bundle = Bundle()
+                    bundle.putString("error_type", reason)
+
+                    Toast.makeText(this, "Registration failed: $exception", Toast.LENGTH_SHORT).show()
+                }
+            }
     }
 
 

@@ -20,3 +20,10 @@ data class Movie(
 ): Parcelable{
     constructor():this("","","","","","")
 }
+
+data class MovieId(
+    val id : String
+){
+    constructor():this("")
+}
+

@@ -1,13 +1,27 @@
 package edu.gwu.filmfinder
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import android.widget.ImageView
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.squareup.picasso.Picasso
 import org.jetbrains.anko.doAsync
 
 class MovieDetailActivity : AppCompatActivity() {
+
+    var uid :String? = ""
+
+    companion object {
+
+        val TAG = "MovieDetailActivity"
+    }
 
     var currMovie: Movie? = null
     lateinit var movieTitle: TextView
@@ -74,5 +88,67 @@ class MovieDetailActivity : AppCompatActivity() {
             }
         }
 
+        if (FirebaseAuth.getInstance().uid == ""){
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        }
+        uid = FirebaseAuth.getInstance().uid
+
+        movieFav.tag = false
+
+        movieFav.setOnClickListener {
+            Log.d(TAG,"fav click")
+            if (movieFav.getTag().toString() == "false"){
+                updateLikedMovie(currMovie!!)
+            } else {
+                updateDislikedMovie(currMovie!!)
+            }
+        }
+    }
+
+    private fun updateLikedMovie(currMovie: Movie) {
+        val ref = FirebaseDatabase.getInstance().getReference("/Movies/${currMovie.id}")
+
+        ref.setValue(currMovie)
+            .addOnSuccessListener {
+                Log.d(TAG, "Finally we saved the movie to Firebase Database")
+            }
+            .addOnFailureListener {
+                Log.d(TAG, "Failed to set value to database: ${it.message}")
+            }
+
+        val actionRef = FirebaseDatabase.getInstance().getReference("/Actions/${uid}").push()
+
+        val currMovieId = MovieId(currMovie.id)
+        actionRef.setValue(currMovieId)
+            .addOnSuccessListener {
+                Log.d(TAG, "Finally we saved the movie to Firebase Database in Actions")
+                movieFav.tag = true
+                movieFav.setImageDrawable(getDrawable(R.drawable.ic_favorite_selected))
+            }
+            .addOnFailureListener {
+                Log.d(TAG, "Failed to set value to database: ${it.message}")
+            }
+    }
+
+    private fun updateDislikedMovie(currMovie: Movie) {
+        val movieRef = FirebaseDatabase.getInstance().reference.child("Actions/${uid}").orderByChild("id").equalTo("${currMovie.id}")
+
+        movieRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(dataSnapshot: DataSnapshot) {
+                for (movieSnapshot in dataSnapshot.children) {
+                    movieSnapshot.ref.removeValue().addOnSuccessListener {
+                        movieFav.tag = false
+                        movieFav.setImageDrawable(getDrawable(R.drawable.ic_favorite_unselected))
+                        Log.d(TAG,"Unlike Movie Successfully")
+                    }
+                }
+            }
+
+            override fun onCancelled(databaseError: DatabaseError) {
+                Log.d(TAG,"Unlike Movie Failed:${databaseError.toException()}")
+
+            }
+        })
     }
 }
