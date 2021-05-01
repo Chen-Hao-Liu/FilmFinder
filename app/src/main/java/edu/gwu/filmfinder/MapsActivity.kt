@@ -27,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import org.jetbrains.anko.doAsync
 import java.lang.Exception
 
@@ -37,6 +38,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var currentLocation: ImageButton
     private var currentAddress:Address? = null
     private lateinit var locationProvider: FusedLocationProviderClient
+    lateinit var bottomBar : BottomNavigationView
 
     private var currLatLng: LatLng? = LatLng(38.8993339, -77.0500718)
     val markerList = mutableMapOf<Marker, String>()
@@ -51,6 +53,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
 
+        bottomBar = findViewById(R.id.bottomBar_maps_activity)
+        bottomBar.setSelectedItemId(R.id.action_map)
         locationProvider = LocationServices.getFusedLocationProviderClient(this)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -73,6 +77,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             }
         }
 
+        bottomBar.setOnNavigationItemSelectedListener { item->
+            when(item.itemId){
+                R.id.action_find ->{
+                    val intent = Intent(this, HomeActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.action_save ->{
+                    val intent = Intent(this, SavedMoviesActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.action_map -> {
+
+                }
+                R.id.action_profile ->{
+                    val intent = Intent(this, ProfileActivity::class.java)
+                    startActivity(intent)
+                }
+
+            }
+            return@setOnNavigationItemSelectedListener true
+        }
 
         currentLocation = findViewById(R.id.current_location)
         currentLocation.setOnClickListener{
