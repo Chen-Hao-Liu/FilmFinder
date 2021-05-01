@@ -2,8 +2,11 @@ package edu.gwu.filmfinder
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.location.Address
 import android.location.Geocoder
 import android.net.Uri
@@ -23,8 +26,7 @@ import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import org.jetbrains.anko.doAsync
 import java.lang.Exception
 
@@ -35,6 +37,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var currentLocation: ImageButton
     private var currentAddress:Address? = null
     private lateinit var locationProvider: FusedLocationProviderClient
+
+    private var currLatLng: LatLng? = LatLng(38.8993339, -77.0500718)
+    val markerList = mutableMapOf<Marker, String>()
+    var currMarker: Marker? = null
+
 
     companion object {
         val TAG = "MapsActivity"
@@ -53,13 +60,19 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         confirm = findViewById(R.id.confirm)
         confirm.isEnabled = false
         confirm.setOnClickListener{
-            if (currentAddress != null) {
-                val url = "https://www.google.com/"
-                val intent = Intent(Intent.ACTION_VIEW)
-                intent.setData(Uri.parse(url))
-                startActivity(intent)
+            if (currMarker!= null) {
+                val intent = Intent()
+                intent.action = Intent.ACTION_VIEW
+                val url = markerList.get(currMarker!!)
+                val content_url = Uri.parse(url)
+                intent.data = content_url
+                if (intent.resolveActivity(packageManager) != null) {
+                    markerList.clear()
+                    startActivity(intent)
+                }
             }
         }
+
 
         currentLocation = findViewById(R.id.current_location)
         currentLocation.setOnClickListener{
@@ -135,10 +148,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 currentAddress = firstResult
 
                 runOnUiThread{
-                    val marker = MarkerOptions().position(latLng).title(streetAddress)
-                    mMap.clear()
-                    mMap.addMarker(marker)
-                    updateConfirmButton(firstResult)
+
                 }
             }
         }
@@ -218,23 +228,196 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mMap.setOnMapLongClickListener {latLng : LatLng ->
             Log.d(TAG,"Long Press at ${latLng.latitude} and ${latLng.longitude}")
-            doGeoCoding(latLng)
+            mMap.clear()
+            getCinemasNearBy(latLng)
+            var myPosition = mMap.addMarker(
+                MarkerOptions().position(currLatLng!!).title("YOUR POSITION").icon(
+                    bitmapDescriptorFromVector(
+                        getApplicationContext(),
+                        R.drawable.ic_current_location
+                    )
+                )
+            )
+        }
+        getCinemasNearBy(currLatLng!!)
+
+        var myPosition = mMap.addMarker(
+            MarkerOptions().position(currLatLng!!).title("YOUR POSITION").icon(
+                bitmapDescriptorFromVector(
+                    getApplicationContext(),
+                    R.drawable.ic_current_location
+                )
+            )
+        )
+
+        var previousMarker = myPosition
+        mMap.setOnMarkerClickListener { marker ->
+            //            val restaurantName = marker.title
+            if (previousMarker != marker) {
+                marker.tag = true
+                previousMarker = marker
+                updateConfirmButton(marker,true,myPosition)
+            } else {
+                var confirmStatus = marker.tag.toString().toBoolean()
+                confirmStatus = !confirmStatus
+                marker.setTag(confirmStatus)
+                if (!confirmStatus){
+                }
+                updateConfirmButton(marker,confirmStatus,myPosition)
+            }
+            true
         }
     }
 
-    private fun updateConfirmButton(address: Address) {
+    private fun updateConfirmButton(marker: Marker, confirmStatus: Boolean,myPosition:Marker) {
         // Update the button color -- need to load the color from resources first
-        val checkIcon = ContextCompat.getDrawable(
-            this, R.drawable.ic_check
+        if (confirmStatus){
+            marker.showInfoWindow()
+            if (!marker.equals(myPosition)){
+                val checkIcon = ContextCompat.getDrawable(
+                    this, R.drawable.ic_check
+                )
+                confirm.background = getDrawable(R.drawable.rounded_button)
+
+                // Update the left-aligned icon
+                confirm.setCompoundDrawablesWithIntrinsicBounds(checkIcon, null, null, null)
+
+                //Update button text
+                confirm.text = "LEARN MORE ABOUT ${marker.title}"
+                confirm.isEnabled = true
+                currMarker = marker
+            } else {
+                //note: when select the current location marker, we must set the confirm button as unselected status
+                val clearIcon = ContextCompat.getDrawable(
+                    this, R.drawable.ic_clear
+                )
+                confirm.background = getDrawable(R.drawable.rounded_button_unselected)
+
+                // Update the left-aligned icon
+                confirm.setCompoundDrawablesWithIntrinsicBounds(clearIcon, null, null, null)
+
+                //Update button text
+                confirm.text = "CHOOSE A LOCATION"
+                confirm.isEnabled = false
+                currMarker = null
+            }
+        } else {
+            marker.hideInfoWindow()
+            val clearIcon = ContextCompat.getDrawable(
+                this, R.drawable.ic_clear
+            )
+            confirm.background = getDrawable(R.drawable.rounded_button_unselected)
+
+            // Update the left-aligned icon
+            confirm.setCompoundDrawablesWithIntrinsicBounds(clearIcon, null, null, null)
+
+            //Update button text
+            confirm.text = "CHOOSE A LOCATION"
+            confirm.isEnabled = false
+            currMarker =null
+        }
+
+    }
+
+    private fun getCinemasNearBy(currLatLng:LatLng){
+        doAsync {
+            val geocoder = Geocoder(this@MapsActivity)
+            doAsync {
+
+                try {
+                    val diningManager = CinemaManager()
+                    val restaurants = diningManager.retrieveCinemas(
+                        LatLng(currLatLng!!.latitude, currLatLng!!.longitude),
+                        getString(R.string.yelp_KEY),
+                        2000
+                    )
+
+                    runOnUiThread {
+                        if (restaurants.isEmpty()) {
+                            android.util.Log.e("MapsActivity", "no results found")
+                        } else {
+                            markerList.clear()
+                            for (i in restaurants) {
+                                val lat = i.cinemaLat
+                                val lon = i.cinemaLong
+                                doAsync {
+                                    val results =
+                                        geocoder.getFromLocation(lat, lon, 5)
+                                    runOnUiThread {
+                                        if (results.isNotEmpty()) {
+                                            val cinemaName = i.cinemaName
+                                            val cinemaRating = i.cinemaRating
+
+                                            val marker = mMap.addMarker(
+                                                MarkerOptions().position(
+                                                    LatLng(
+                                                        lat,
+                                                        lon
+                                                    )
+                                                )
+                                                    .title(cinemaName)
+                                                    .snippet(
+                                                        "Rating：${String.format(
+                                                            "%.0f",
+                                                            cinemaRating
+                                                        )}"
+                                                    )
+                                                    .draggable(true).icon(
+                                                        bitmapDescriptorFromVector(
+                                                            getApplicationContext(),
+                                                            R.drawable.ic_cinema_nearby
+                                                        )
+                                                    )
+                                            )
+
+                                            marker.setTag(0)
+                                            markerList.put(marker, i.cinemaUrl)
+                                        }
+                                    }
+
+                                }
+                                val zoomLevel = 13.0f
+                            }
+                        }
+
+                    }
+
+                } catch (e: Exception) {
+                    runOnUiThread {
+                        e.printStackTrace()
+                        // Display some kind of error message
+                        Toast.makeText(
+                            this@MapsActivity,
+                            "Error! No Result",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+
+
+        }
+    }
+
+    private fun bitmapDescriptorFromVector(
+        context: Context,
+        vectorResId: Int
+    ): BitmapDescriptor {
+        val vectorDrawable = ContextCompat.getDrawable(context, vectorResId)
+        vectorDrawable!!.setBounds(
+            0,
+            0,
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight
         )
-        confirm.background = getDrawable(R.drawable.rounded_button)
-
-        // Update the left-aligned icon
-        confirm.setCompoundDrawablesWithIntrinsicBounds(checkIcon, null, null, null)
-
-        //Update button text
-        confirm.text = address.getAddressLine(0)
-        confirm.isEnabled = true
+        val bitmap = Bitmap.createBitmap(
+            vectorDrawable.intrinsicWidth,
+            vectorDrawable.intrinsicHeight,
+            Bitmap.Config.ARGB_8888
+        )
+        var canvas = Canvas(bitmap)
+        vectorDrawable.draw(canvas)
+        return BitmapDescriptorFactory.fromBitmap(bitmap)
     }
 
 }
