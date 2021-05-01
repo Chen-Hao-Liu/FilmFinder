@@ -12,7 +12,6 @@ import org.jetbrains.anko.doAsync
 
 class HomeActivity : AppCompatActivity() {
     lateinit var recyclerView: RecyclerView
-    lateinit var goBackBtn : ImageView
     lateinit var bottomBar : BottomNavigationView
 
     companion object {
@@ -24,25 +23,18 @@ class HomeActivity : AppCompatActivity() {
         setContentView(R.layout.activity_home)
 
         val contentType=getString(R.string.Content_Type)
-        val primaryReleaseDateGte = "2020-01-15"
-        val primaryReleaseDateLte = "2020-02-22"
+        val primaryReleaseDateGte = Util.getdate(MovieDetailActivity.TAG, -15)
+        val primaryReleaseDateLte = Util.getdate(MovieDetailActivity.TAG, 15)
         val api_key = getString(R.string.movie_KEY)
         val authorization =  getString(R.string.authorization)
         val language = getString(R.string.language)
         val imaFrontPAth = getString(R.string.img_front_path)
         val n = getString(R.string.page)
 
-
         bottomBar = findViewById(R.id.bottomBar)
         bottomBar.setSelectedItemId(R.id.action_find)
-        goBackBtn = findViewById(R.id.ic_go_back_homepage)
         recyclerView = findViewById(R.id.recycleview_movie)
         recyclerView.layoutManager = GridLayoutManager(this,3)
-
-        goBackBtn.setOnClickListener{
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-        }
 
         doAsync{
             try{

@@ -50,6 +50,7 @@ class RecyclerViewAdapter(val mData:List<Movie>, val mContext: Context): Recycle
         holder.itemView.setOnClickListener { v: View? ->
             val intent = Intent(mContext, MovieDetailActivity::class.java)
             intent.putExtra("movie", mData.get(position))
+            intent.putExtra("from",HomeActivity.TAG)
             mContext.startActivity(intent)
         }
     }

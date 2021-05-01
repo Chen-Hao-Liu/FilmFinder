@@ -23,6 +23,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
@@ -36,11 +37,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var mMap: GoogleMap
     private lateinit var confirm: Button
     private lateinit var currentLocation: ImageButton
-    private var currentAddress:Address? = null
     private lateinit var locationProvider: FusedLocationProviderClient
     lateinit var bottomBar : BottomNavigationView
 
-    private var currLatLng: LatLng? = LatLng(38.8993339, -77.0500718)
     val markerList = mutableMapOf<Marker, String>()
     var currMarker: Marker? = null
 
@@ -76,7 +75,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
-
+        checkPermission()
         bottomBar.setOnNavigationItemSelectedListener { item->
             when(item.itemId){
                 R.id.action_find ->{
@@ -155,28 +154,61 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     fun doGeoCoding(latLng: LatLng) {
+        mMap.clear()
+
+        // Start running some code on the background for geocoding
         doAsync {
+            // Retrieve address results from the Geocoder
             val geocoder = Geocoder(this@MapsActivity)
-            val result: List<Address> = try{
-                geocoder.getFromLocation(
-                    latLng.latitude,
-                    latLng.longitude,
-                    10
-                )
-            }catch (exception:Exception){
-                Log.d(TAG,"Failed to retrieve address result ${exception} ")
-                listOf<Address>()
-            }
-            if (result.isNotEmpty()){
-                val firstResult = result.first()
-                val streetAddress = firstResult.getAddressLine(0)
-                currentAddress = firstResult
+            val results: List<Address> = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 5)
 
-                runOnUiThread{
+            // Switch back to UI thread to update the UI
+            runOnUiThread {
+                if (results.isNotEmpty()) {
+                    // We'll just display the 1st address, which would have the highest accuracy / confidence
+                    val firstAddress = results[0]
+                    val title = firstAddress.getAddressLine(0)
+                    val state = firstAddress.adminArea ?: "unknown"
 
+                    // Place the marker
+
+                    var myPosition = mMap.addMarker(
+                        MarkerOptions().position(latLng).title("YOUR POSITION").icon(
+                            bitmapDescriptorFromVector(
+                                getApplicationContext(),
+                                R.drawable.ic_current_location
+                            )
+                        )
+                    )
+                    var previousMarker = myPosition
+                    mMap.setOnMarkerClickListener { marker ->
+                        if (previousMarker != marker) {
+                            marker.tag = true
+                            previousMarker = marker
+                            updateConfirmButton(marker,true,myPosition)
+                        } else {
+                            var confirmStatus = marker.tag.toString().toBoolean()
+                            confirmStatus = !confirmStatus
+                            marker.setTag(confirmStatus)
+                            if (!confirmStatus){
+                            }
+                            updateConfirmButton(marker,confirmStatus,myPosition)
+                        }
+                        true
+                    }
+
+                    getCinemasNearBy(latLng)
+                    // Pan the camera over to the map marker and zoom in
+                    val zoomLevel = 12.0f
+                    mMap.animateCamera(
+                        CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel)
+                    )
+                } else {
+                    Log.e("MapsActivity", "No results found")
                 }
             }
         }
+
     }
 
     fun checkPermission(){
@@ -238,14 +270,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
         }
-
-        @Override fun PreferenceManager.OnActivityResult(requestCode: Int, resultCode:Int, data: Intent?){
-            super.onActivityResult(requestCode,resultCode, data)
-            // the user has returned from the settings activity
-            if (requestCode == 100) {
-                checkPermission()
-            }
-        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -254,43 +278,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.setOnMapLongClickListener {latLng : LatLng ->
             Log.d(TAG,"Long Press at ${latLng.latitude} and ${latLng.longitude}")
             mMap.clear()
-            getCinemasNearBy(latLng)
-            var myPosition = mMap.addMarker(
-                MarkerOptions().position(currLatLng!!).title("YOUR POSITION").icon(
-                    bitmapDescriptorFromVector(
-                        getApplicationContext(),
-                        R.drawable.ic_current_location
-                    )
-                )
-            )
-        }
-        getCinemasNearBy(currLatLng!!)
-
-        var myPosition = mMap.addMarker(
-            MarkerOptions().position(currLatLng!!).title("YOUR POSITION").icon(
-                bitmapDescriptorFromVector(
-                    getApplicationContext(),
-                    R.drawable.ic_current_location
-                )
-            )
-        )
-
-        var previousMarker = myPosition
-        mMap.setOnMarkerClickListener { marker ->
-            //            val restaurantName = marker.title
-            if (previousMarker != marker) {
-                marker.tag = true
-                previousMarker = marker
-                updateConfirmButton(marker,true,myPosition)
-            } else {
-                var confirmStatus = marker.tag.toString().toBoolean()
-                confirmStatus = !confirmStatus
-                marker.setTag(confirmStatus)
-                if (!confirmStatus){
-                }
-                updateConfirmButton(marker,confirmStatus,myPosition)
-            }
-            true
+            doGeoCoding(latLng)
         }
     }
 
@@ -351,18 +339,18 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
                 try {
                     val diningManager = CinemaManager()
-                    val restaurants = diningManager.retrieveCinemas(
+                    val cinemas = diningManager.retrieveCinemas(
                         LatLng(currLatLng!!.latitude, currLatLng!!.longitude),
                         getString(R.string.yelp_KEY),
                         2000
                     )
 
                     runOnUiThread {
-                        if (restaurants.isEmpty()) {
-                            android.util.Log.e("MapsActivity", "no results found")
+                        if (cinemas.isEmpty()) {
+                            Toast.makeText(this@MapsActivity,"No Cinema Nearby!!",Toast.LENGTH_SHORT).show()
                         } else {
                             markerList.clear()
-                            for (i in restaurants) {
+                            for (i in cinemas) {
                                 val lat = i.cinemaLat
                                 val lon = i.cinemaLong
                                 doAsync {
@@ -419,8 +407,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                     }
                 }
             }
-
-
         }
     }
 
