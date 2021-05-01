@@ -6,4 +6,6 @@ Check the pull requests for different functionalities covered by each lecture.
 
 Useful resource: [List of public-apis](https://github.com/public-apis/public-apis)
 
-![homepage](https://github.com/Chen-Hao-Liu/FilmFinder/blob/main/screenshots/Home.png)
+<p align="center">
+  <img src="https://github.com/Chen-Hao-Liu/FilmFinder/blob/main/screenshots/Home.png">
+</p>
